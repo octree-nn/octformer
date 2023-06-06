@@ -1,0 +1,81 @@
+# --------------------------------------------------------
+# OctFormer: Octree-based Transformers for 3D Point Clouds
+# Copyright (c) 2023 Peng-Shuai Wang <wangps@hotmail.com>
+# Licensed under The MIT License [see LICENSE for details]
+# Written by Peng-Shuai Wang
+# --------------------------------------------------------
+
+SOLVER:
+  gpu: 0,
+  run: train
+  type: adamw
+  best_val: max:accu
+
+  logdir: logs/m40/octformer_d6
+  max_epoch: 200
+  test_every_epoch: 5
+  log_per_iter: 20
+
+  lr: 0.001
+  lr_type: step
+  weight_decay: 0.05
+  milestones: (120,160)
+  ckpt_num: 200
+
+DATA:
+  train:
+    # octree building
+    depth: 6
+    full_depth: 2
+
+    # transformation
+    orient_normal: xyz
+
+    # data augmentations
+    distort: True
+    angle: (0, 0, 5)      # small rotation along z axis
+    interval: (1, 1, 1)
+    scale: 0.25
+    jitter: 0.125
+
+    # data loading
+    location: data/ModelNet40/ModelNet40.ply.normalize
+    filelist: data/ModelNet40/filelist/m40_train.txt
+    batch_size: 32
+    shuffle: True
+    pin_memory: False
+    # num_workers: 0
+
+  test:
+    # octree building
+    depth: 6
+    full_depth: 2
+
+    # transformation
+    orient_normal: xyz
+
+    # data augmentations
+    distort: False
+    angle: (0, 0, 5)      # small rotation along z axis
+    interval: (1, 1, 1)
+    scale: 0.25
+    jitter: 0.125
+
+    # data loading
+    location: data/ModelNet40/ModelNet40.ply.normalize
+    filelist: data/ModelNet40/filelist/m40_test.txt
+    batch_size: 32
+    shuffle: False
+    pin_memory: False
+    # num_workers: 0
+
+MODEL:
+  name: octformercls
+  nout: 40
+  channel: 4
+  # nempty: True
+  feature: ND   # N -> Normal (3 channels);
+                # D -> Local displacement (1 channel)
+
+LOSS:
+  num_class: 40

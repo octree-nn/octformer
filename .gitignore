@@ -1,0 +1,10 @@
+.vscode
+__pycache__
+dist
+data
+logs
+*.sh
+*.xyz
+*.log
+*.pth
+dwconv
