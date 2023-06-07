@@ -66,7 +66,7 @@ The code has been tested on Ubuntu 20.04 with 4 Nvidia 3090 GPUs (24GB memory).
     ```
 
 2. **Train**: Run the following command to train the network with 4 GPUs and
-   port 10001. The mIoU on the validation set without voting is 74.6, the
+   port 10001. The mIoU on the validation set without voting is 74.8, the
    training log and weights can be downloaded
    [here](https://1drv.ms/u/s!Ago-xIr0OR2-gRrV35QGxnHJR4ku?e=ZXRqV7).
 
@@ -76,7 +76,7 @@ The code has been tested on Ubuntu 20.04 with 4 Nvidia 3090 GPUs (24GB memory).
 
 3. **Evaluate**: Run the following command to get the per-point predictions for
    the validation dataset with a voting strategy. And after voting, the mIoU is
-   75.7 on the validation dataset.
+   76.3 on the validation dataset.
 
     ```bash
     python scripts/run_seg_scannet.py --gpu 0 --alias scannet --run validate

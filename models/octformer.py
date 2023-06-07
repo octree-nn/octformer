@@ -248,9 +248,9 @@ class OctFormerBlock(torch.nn.Module):
     self.cpe = OctreeDWConvBn(dim, nempty=nempty)
 
   def forward(self, data: torch.Tensor, octree: OctreeT, depth: int):
+    data = self.cpe(data, octree, depth) + data
     attn = self.attention(self.norm1(data), octree, depth)
     data = data + self.drop_path(attn, octree, depth)
-    data = self.cpe(data, octree, depth) + data
     ffn = self.mlp(self.norm2(data))
     data = data + self.drop_path(ffn, octree, depth)
     return data
