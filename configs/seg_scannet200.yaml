@@ -1,0 +1,94 @@
+# --------------------------------------------------------
+# OctFormer: Octree-based Transformers for 3D Point Clouds
+# Copyright (c) 2023 Peng-Shuai Wang <wangps@hotmail.com>
+# Licensed under The MIT License [see LICENSE for details]
+# Written by Peng-Shuai Wang
+# --------------------------------------------------------
+
+SOLVER:
+  gpu: 0,1,2,3
+  run: train
+  logdir: logs/scannet200/octformer
+  best_val: max:mIoU_part
+
+  ckpt_num: 200
+  max_epoch: 600
+  test_every_epoch: 10
+  log_per_iter: 10
+
+  weight_decay: 0.05
+  type: adamw_attn
+
+  lr: 0.0015
+  lr_type: step_warmup
+  milestones: (360,520)
+  dist_url: tcp://localhost:10001  # for distributed training
+
+DATA:
+  train:
+    name: scannet
+
+    # octree building
+    depth: 11
+    full_depth: 2
+
+    # data augmentations
+    distort: True
+    angle: (5, 5, 180)
+    scale: 0.2
+    jitter: 0.1
+    flip: (0.5, 0.5, 0.0)
+    uniform: False
+    cutmix: 0.0        # no cutmix
+    crop_ratio: 0.8    # random ratio of random cropping
+    max_npt: 120000    # max point number of random cropping
+    
+    # data loading
+    location: data/scannet200.npz/train
+    filelist: data/scannet200.npz/scannetv2_train_npz.txt
+    batch_size: 4
+    shuffle: True
+    num_workers: 4
+
+  test:
+    name: scannet
+
+    # octree building
+    depth: 11
+    full_depth: 2
+
+    # data augmentations
+    distort: False  # no data augmentation by default
+    angle: (5, 5, 180)
+    scale: 0.2
+    jitter: 0.1
+    flip: (0.5, 0.5, 0.0)
+    uniform: False
+    crop_ratio: 0.8
+    max_npt:  -1
+    cutmix: 0.0   # no cutmix
+
+    # data loading
+    location: data/scannet200.npz/train
+    filelist: data/scannet200.npz/scannetv2_val_npz.txt
+    batch_size: 1
+    shuffle: False
+    num_workers: 2
+
+MODEL:
+  name: octsegformer
+  # N -> Normal (3 channels);
+  # D -> Displacement (1 channel);
+  # F -> Color (3 channels)
+  # P -> Position (3 channels)
+  feature: NDFP
+  channel: 10
+  nout: 201
+  nempty: True
+  interp: nearest
+  sync_bn: True
+  # find_unused_parameters: True
+
+LOSS:
+  mask: 0
+  num_class: 201

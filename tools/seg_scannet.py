@@ -7,53 +7,51 @@
 
 import os
 import argparse
-import numpy as np
+import json
 import wget
 import zipfile
+import pandas as pd
+import numpy as np
 from tqdm import tqdm
 from plyfile import PlyData, PlyElement
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--path_in', type=str, default='data/scannet.ply/train')
-parser.add_argument('--path_out', type=str, default='data/scannet')
+parser.add_argument('--path_out', type=str, default='data/scannet.npz')
 parser.add_argument('--suffix_out', type=str, default='.npz')
-# parser.add_argument('--align_axis', action='store_true')
+parser.add_argument('--align_axis', action='store_true')
+parser.add_argument('--scannet200', action='store_true')
 parser.add_argument('--path_pred', type=str, default='logs/scannet/pred_eval')
-parser.add_argument('--filelist', type=str, default='scannetv2_test_new.txt')
-parser.add_argument('--scannet200', type=str, default='false')
+parser.add_argument('--filelist', type=str, default='scannetv2_test.txt')
 parser.add_argument('--run', type=str, default='process_scannet',  # noqa
     help='Choose from `process_scannet`, `generate_output_seg` and `calc_iou`')
 args = parser.parse_args()
 
 
 suffix = '_vh_clean_2.ply'
-class_labels = ('wall', 'floor', 'cabinet', 'bed', 'chair',
-                'sofa', 'table', 'door', 'window', 'bookshelf',
-                'picture', 'counter', 'desk', 'curtain',
-                'refrigerator', 'shower curtain', 'toilet', 'sink',
-                'bathtub', 'otherfurniture')
+suffix_aggr = '_vh_clean.aggregation.json'
+suffix_segs = '_vh_clean_2.0.010000.segs.json'
+meta_data = os.path.join(args.path_out, 'scannetv2-labels.combined.tsv')
+class_ids20 = (  # !!! the first element 0 represents unlabeled points  !!!
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 24, 28, 33, 34, 36, 39)
+class_ids200 = (  # !!! the first element 0 represents unlabeled points  !!!
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19, 21, 22,
+    23, 24, 26, 27, 28, 29, 31, 32, 33, 34, 35, 36, 38, 39, 40, 41, 42, 44, 45,
+    46, 47, 48, 49, 50, 51, 52, 54, 55, 56, 57, 58, 59, 62, 63, 64, 65, 66, 67,
+    68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 82, 84, 86, 87, 88, 89,
+    90, 93, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 110,
+    112, 115, 116, 118, 120, 121, 122, 125, 128, 130, 131, 132, 134, 136, 138,
+    139, 140, 141, 145, 148, 154, 155, 156, 157, 159, 161, 163, 165, 166, 168,
+    169, 170, 177, 180, 185, 188, 191, 193, 195, 202, 208, 213, 214, 221, 229,
+    230, 232, 233, 242, 250, 261, 264, 276, 283, 286, 300, 304, 312, 323, 325,
+    331, 342, 356, 370, 392, 395, 399, 408, 417, 488, 540, 562, 570, 572, 581,
+    609, 748, 776, 1156, 1163, 1164, 1165, 1166, 1167, 1168, 1169, 1170, 1171,
+    1172, 1173, 1174, 1175, 1176, 1178, 1179, 1180, 1181, 1182, 1183, 1184,
+    1185, 1186, 1187, 1188, 1189, 1190, 1191)
 
-if args.scannet200.lower() == 'false':
-  class_ids = (  # !!! the first element 0 represents unlabeled points  !!!
-      0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 24, 28, 33, 34, 36, 39)
-else:
-  class_ids = (
-      0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19, 21, 22,
-      23, 24, 26, 27, 28, 29, 31, 32, 33, 34, 35, 36, 38, 39, 40, 41, 42, 44, 45,
-      46, 47, 48, 49, 50, 51, 52, 54, 55, 56, 57, 58, 59, 62, 63, 64, 65, 66, 67,
-      68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 82, 84, 86, 87, 88, 89,
-      90, 93, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 110,
-      112, 115, 116, 118, 120, 121, 122, 125, 128, 130, 131, 132, 134, 136, 138,
-      139, 140, 141, 145, 148, 154, 155, 156, 157, 159, 161, 163, 165, 166, 168,
-      169, 170, 177, 180, 185, 188, 191, 193, 195, 202, 208, 213, 214, 221, 229,
-      230, 232, 233, 242, 250, 261, 264, 276, 283, 286, 300, 304, 312, 323, 325,
-      331, 342, 356, 370, 392, 395, 399, 408, 417, 488, 540, 562, 570, 572, 581,
-      609, 748, 776, 1156, 1163, 1164, 1165, 1166, 1167, 1168, 1169, 1170, 1171,
-      1172, 1173, 1174, 1175, 1176, 1178, 1179, 1180, 1181, 1182, 1183, 1184,
-      1185, 1186, 1187, 1188, 1189, 1190, 1191)
-
-label_dict = np.zeros(1200, dtype=np.int32)
+class_ids = class_ids200 if args.scannet200 else class_ids20
+label_dict = np.zeros(2048, dtype=np.int32)
 label_dict[np.array(class_ids)] = np.arange(len(class_ids))
 ilabel_dict = np.array(class_ids)
 
@@ -127,7 +125,6 @@ def save_ply(point_cloud, filename):
 
   # write ply
   PlyData([el]).write(filename)
-  print('Save:', filename)
 
 
 def save_npz(point_cloud, filename):
@@ -137,10 +134,10 @@ def save_npz(point_cloud, filename):
   if point_cloud.shape[1] == 10:
     output['labels'] = point_cloud[:, 9].astype(np.int32)
   np.savez(filename, **output)
-  print('Save:', filename)
 
 
-def align_to_axis(filename, vertex):
+def align_to_axis(filename_ply, vertex):
+  filename = filename_ply.replace(suffix, '.txt')
   with open(filename) as fid:
     for line in fid:
       (key, val) = line.split(" = ")
@@ -151,51 +148,83 @@ def align_to_axis(filename, vertex):
   return vertex
 
 
+def generate_point_labels20(filename_ply):
+  filename_label = filename_ply[:-4] + '.labels.ply'
+  _, _, label = read_ply(filename_label)
+  return label[:, -1].astype(np.int32)
+
+
+def generate_point_labels200(filename_ply, label_table):
+  filename_segs = filename_ply.replace(suffix, suffix_segs)
+  with open(filename_segs) as f:
+    segs = json.load(f)
+    seg_indices = np.array(segs['segIndices'])
+
+  filename_aggr = filename_ply.replace(suffix, suffix_aggr)
+  with open(filename_aggr) as f:
+    aggregation = json.load(f)
+    seg_groups = np.array(aggregation['segGroups'])
+
+  label = np.zeros(seg_indices.shape[0], dtype=np.int32)
+  for group in seg_groups:
+    label_id = label_table[label_table['raw_category'] == group['label']]['id']
+    label_group = int(label_id.iloc[0]) if len(label_id) > 0 else 0
+    if label_group not in class_ids200: label_group = 0
+    segments = np.array(group['segments'])  # all segments in one group
+    point_idx = np.where(np.isin(seg_indices, segments))[0]
+    label[point_idx] = label_group
+  return label
+
+
+def generate_point_labels(filename_ply, label_table):
+  if args.scannet200:
+    return generate_point_labels200(filename_ply, label_table)
+  else:
+    return generate_point_labels20(filename_ply)
+
+
 def process_scannet():
   download_filelists()
+  label_table = pd.read_csv(meta_data, sep='\t', header=0)
 
   subsets = {'train': 'scans', 'test': 'scans_test'}
-  for path_out, path_in in subsets.items():
-    curr_path_out = os.path.join(args.path_out, path_out)
-    curr_path_in = os.path.join(args.path_in, path_in)
-    os.makedirs(curr_path_out, exist_ok=True)
+  for folder_out, folder_in in tqdm(subsets.items(), ncols=80):
+    path_in = os.path.join(args.path_in, folder_in)
+    path_out = os.path.join(args.path_out, folder_out)
+    os.makedirs(path_out, exist_ok=True)
 
-    scene_ids = os.listdir(curr_path_in)
-    for scene_id in scene_ids:
-      filename_ply = os.path.join(curr_path_in, scene_id, scene_id + suffix)
-      filename_out = os.path.join(curr_path_out, scene_id + args.suffix_out)
+    scene_ids = os.listdir(path_in)
+    for scene_id in tqdm(scene_ids, ncols=80):
+      filename_ply = os.path.join(path_in, scene_id, scene_id + suffix)
+      filename_out = os.path.join(path_out, scene_id + args.suffix_out)
       if os.path.exists(filename_out):
-        print('Skip:', filename_out)
+        tqdm.write('Skip: %s' % filename_out)
         continue
 
       # Load pointcloud file
       vertex, face, props = read_ply(filename_ply)
       assert np.unique(props[:, -1]).size == 1
-      # info_file = filename_ply.replace(suffix, '.txt')
-      # vertex = align_to_axis(info_file, vertex)
+      if args.align_axis:
+        vertex = align_to_axis(filename_ply, vertex)
       nv = vertex_normal(vertex, face)
       pointcloud = np.concatenate([vertex, nv, props], axis=1)
 
-      # Load label file
-      label = np.zeros((pointcloud.shape[0], 1))
-      filename_label = filename_ply[:-4] + '.labels.ply'
-      if os.path.exists(filename_label):
-        _, _, label = read_ply(filename_label)
-        # check that the pointcloud and its label has same vertices.
-        assert pointcloud.shape[0] == label.shape[0]
+      # Generate point cloud label
+      if folder_out == 'train':
+        label = generate_point_labels(filename_ply, label_table)
 
         # save the original label
-        label = label[:, -1:].astype(np.int32)
         filename_txt = filename_out[:-4] + '.txt'
         np.savetxt(filename_txt, label, fmt='%d')
 
         # map the original label to the new label
         label_new = label_dict[label]
-        pointcloud[:, -1:] = label_new
+        pointcloud[:, -1] = label_new
 
       # save the file
       save_file = save_ply if args.suffix_out == '.ply' else save_npz
       save_file(pointcloud, filename_out)
+      tqdm.write('Save: %s' % filename_out)
 
 
 def generate_output_seg():
@@ -253,9 +282,7 @@ def calc_iou():
     label_gt = np.loadtxt(os.path.join(args.path_in, filename))
 
     # omit labels out of class_ids[1:]
-    mask = np.zeros_like(label_gt).astype(bool)
-    for i in range(label_gt.shape[0]):
-      mask[i] = label_gt[i] in class_ids[1:]
+    mask = np.isin(label_gt, class_ids[1:])
     label_pred = label_pred[mask]
     label_gt = label_gt[mask]
 

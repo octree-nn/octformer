@@ -66,8 +66,9 @@ The code has been tested on Ubuntu 20.04 with 4 Nvidia 3090 GPUs (24GB memory).
     ```
 
 2. **Train**: Run the following command to train the network with 4 GPUs and
-   port 10001. The mIoU on the validation set without voting is 74.8, the
-   training log and weights can be downloaded
+   port 10001. The mIoU on the validation set without voting is 74.8. The
+   training takes less than 16h on 4 Nvidia 3090 GPUs. And the training log and
+   weights can be downloaded
    [here](https://1drv.ms/u/s!Ago-xIr0OR2-gRrV35QGxnHJR4ku?e=ZXRqV7).
 
     ```bash
@@ -84,6 +85,35 @@ The code has been tested on Ubuntu 20.04 with 4 Nvidia 3090 GPUs (24GB memory).
 
 
 ## 3. ScanNet200 Segmentation
+
+
+1. **Data**: Download the data from the 
+   [ScanNet benchmark](https://kaldir.vc.in.tum.de/scannet_benchmark/). 
+   Unzip the data and place it to the folder <scannet_folder>. Run the following
+   command to prepare the dataset.
+
+    ```bash
+    python tools/seg_scannet200.py --run process_scannet --path_in <scannet_folder>  \
+           --path_out data/scanet200.npz  --align_axis  --scannet200
+    ```
+
+2. **Train**: Run the following command to train the network with 4 GPUs. The
+    mIoU on the validation set without voting is 31.7, the training log and
+   weights can be downloaded 
+   [here](https://1drv.ms/u/s!Ago-xIr0OR2-gRwsNivzRalw0M4S?e=b92sv6). 
+   With OctFormer-Large, the mIoU increases to 32.2.
+
+    ```bash
+    python scripts/run_seg_scannet200.py --gpu 0,1,2,3 --alias scannet200
+    ```
+
+3. **Evaluate**: Run the following command to get the per-point predictions for
+   the validation dataset with a voting strategy. And after voting, the mIoU is
+   32.6 on the validation dataset.
+
+    ```bash
+    python scripts/run_seg_scannet200.py --gpu 0 --alias scannet200 --run validate
+    ```
 
 
 ## 4. SUN RGB-D Detection

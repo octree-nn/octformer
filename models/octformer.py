@@ -283,7 +283,7 @@ class OctFormerStage(torch.nn.Module):
 
   def forward(self, data: torch.Tensor, octree: OctreeT, depth: int):
     for i in range(self.num_blocks):
-      if self.use_checkpoint:
+      if self.use_checkpoint and self.training:
         data = checkpoint(self.blocks[i], data, octree, depth)
       else:
         data = self.blocks[i](data, octree, depth)
