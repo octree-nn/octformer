@@ -8,3 +8,5 @@ logs
 *.log
 *.pth
 dwconv
+mmdetection3d
+debug
