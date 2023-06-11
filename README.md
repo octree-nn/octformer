@@ -146,9 +146,9 @@ The code has been tested on Ubuntu 20.04 with 4 Nvidia 3090 GPUs (24GB memory).
     ```
 
 2. **Training**: Run the following command to train the network with 4 GPUs. The
-    maximum mAP@0.25 and mAP@05 on the validation set are 65.9 and 50.2,
+    maximum mAP@0.25 and mAP@05 on the validation set are 66.6 and 50.6,
     respectively. The training log and weights can be downloaded
-    [here](https://1drv.ms/u/s!Ago-xIr0OR2-gR38_Emxxxtkz4MU?e=N7RVZI).
+    [here](https://1drv.ms/u/s!Ago-xIr0OR2-gR70qXLpohtYonuP?e=wlWMqm).
 
     ```bash
     CUDA_VISIBLE_DEVICES=0,1,2,3 python -m torch.distributed.launch --nproc_per_node=4  \
