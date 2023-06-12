@@ -44,7 +44,9 @@ def download_m40():
     wget.download(url, filename)
 
   # unzip
-  flag_file = os.path.join(root_folder, 'flags/unzip_succ')
+  flag_floder = os.path.join(root_folder, 'flags')
+  os.makedirs(flag_floder, exist_ok=True)
+  flag_file = os.path.join(flag_floder, 'unzip_succ')
   if not os.path.exists(flag_file):
     print('-> Unzip the dataset.')
     with zipfile.ZipFile(filename, 'r') as zip_ref:
