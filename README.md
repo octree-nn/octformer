@@ -3,7 +3,7 @@
 This repository contains the implementation of **OctFormer**. The code is
 released under the **MIT license**.
 
-**[OctFormer: Octree-based Transformers for 3D Point Clouds](https://todo)**<br/>
+**[OctFormer: Octree-based Transformers for 3D Point Clouds](https://wang-ps.github.io/octformer.html)**<br/>
 [Peng-Shuai Wang](https://wang-ps.github.io/)<br/>
 ACM Transactions on Graphics (SIGGRAPH), 42(4), 2023
 
