@@ -1,7 +1,8 @@
 # OctFormer: Octree-based Transformers for 3D Point Clouds
 
 This repository contains the implementation of **OctFormer**. The code is
-released under the **MIT license**.
+released under the **MIT license**. The code has been awarded the [Replicability Stamp](http://www.replicabilitystamp.org#https-github-com-octree-nn-octformer) by the [Graphics Replicability Stamp Initiative](https://www.replicabilitystamp.org/).
+
 
 **[OctFormer: Octree-based Transformers for 3D Point Clouds](https://wang-ps.github.io/octformer.html)**<br/>
 [Peng-Shuai Wang](https://wang-ps.github.io/)<br/>
