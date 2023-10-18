@@ -179,6 +179,12 @@ class OctreeAttention(torch.nn.Module):
     self.proj = torch.nn.Linear(dim, dim)
     self.proj_drop = torch.nn.Dropout(proj_drop)
     self.softmax = torch.nn.Softmax(dim=-1)
+
+    # NOTE: self.rpe is not used in the original experiments of my paper. When
+    # releasing the code, I added self.rpe because I observed that it could
+    # stablize the training process and improve the performance on ScanNet by
+    # 0.3 to 0.5; on the other datasets, the improvements are more marginal. So
+    # it is not indispensible, and can be removed by setting `use_rpe` as False.
     self.rpe = RPE(patch_size, num_heads, dilation) if use_rpe else None
 
   def forward(self, data: torch.Tensor, octree: OctreeT, depth: int):
