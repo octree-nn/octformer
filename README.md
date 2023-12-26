@@ -112,7 +112,7 @@ The code has been tested on Ubuntu 20.04 with 4 Nvidia 3090 GPUs (24GB memory).
    command to prepare the dataset.
 
     ```bash
-    python tools/seg_scannet200.py --run process_scannet --path_in <scannet_folder>  \
+    python tools/seg_scannet.py --run process_scannet --path_in <scannet_folder>  \
            --path_out data/scanet200.npz  --align_axis  --scannet200
     ```
 
