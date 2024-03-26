@@ -1,5 +1,5 @@
 torch
-ocnn
+ocnn==2.2.1
 thsolver==1.1.4
 numpy
 tqdm
