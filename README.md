@@ -88,7 +88,7 @@ The code has been tested on Ubuntu 20.04 with 4 Nvidia 3090 GPUs (24GB memory).
    port 10001. The mIoU on the validation set without voting is 74.8. The
    training takes less than 16h on 4 Nvidia 3090 GPUs. And the training log and
    weights can be downloaded
-   [here](https://1drv.ms/u/s!Ago-xIr0OR2-gRrV35QGxnHJR4ku?e=ZXRqV7).
+   [here](https://1drv.ms/u/c/be1d39f48ac43e0a/EQo-xIr0OR0ggL6aAAAAAAAB92-O6xWX3DlAb8yxaZOyeA).
 
     ```bash
     python scripts/run_seg_scannet.py --gpu 0,1,2,3 --alias scannet --port 10001
@@ -119,7 +119,7 @@ The code has been tested on Ubuntu 20.04 with 4 Nvidia 3090 GPUs (24GB memory).
 2. **Train**: Run the following command to train the network with 4 GPUs. The
     mIoU on the validation set without voting is 31.7, the training log and
    weights can be downloaded
-   [here](https://1drv.ms/u/s!Ago-xIr0OR2-gRwsNivzRalw0M4S?e=b92sv6).
+   [here](https://1drv.ms/u/c/be1d39f48ac43e0a/EQo-xIr0OR0ggL6cAAAAAAAB7KLyYJOcTe5VMIOi4npxSw).
    With OctFormer-Large, the mIoU increases to 32.2.
 
     ```bash
@@ -149,7 +149,7 @@ The code has been tested on Ubuntu 20.04 with 4 Nvidia 3090 GPUs (24GB memory).
 2. **Training**: Run the following command to train the network with 4 GPUs. The
     maximum mAP@0.25 and mAP@05 on the validation set are 66.6 and 50.6,
     respectively. The training log and weights can be downloaded
-    [here](https://1drv.ms/u/s!Ago-xIr0OR2-gR70qXLpohtYonuP?e=wlWMqm).
+    [here](https://1drv.ms/u/c/be1d39f48ac43e0a/EQo-xIr0OR0ggL6eAAAAAAABxlX2sxwFvRtOMcedtyHpQQ).
 
     ```bash
     CUDA_VISIBLE_DEVICES=0,1,2,3 python -m torch.distributed.launch --nproc_per_node=4  \
@@ -168,14 +168,14 @@ The code has been tested on Ubuntu 20.04 with 4 Nvidia 3090 GPUs (24GB memory).
 2. **Train**: Run the following command to train the network with 1 GPU. The
    classification accuracy on the testing set without voting is 92.7%. And the
    training log and weights can be downloaded
-   [here](https://1drv.ms/u/s!Ago-xIr0OR2-gRskk20x7V_Mc9FI?e=jVAf8o).
+   [here](https://1drv.ms/u/c/be1d39f48ac43e0a/EQo-xIr0OR0ggL6bAAAAAAAB64TALmaOG3fo76lTbU_XEA).
     ```bash
     python classification.py --config configs/cls_m40.yaml SOLVER.gpu 0,
     ```
 
 ## 6. Citation
 
-   ```bibtex 
+   ```bibtex
     @article {Wang2023OctFormer,
         title      = {OctFormer: Octree-based Transformers for {3D} Point Clouds},
         author     = {Wang, Peng-Shuai},
