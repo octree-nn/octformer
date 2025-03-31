@@ -58,8 +58,10 @@ class SegSolver(Solver):
     query_pts = torch.cat([points.points, points.batch_id], dim=1)
 
     logit = self.model(data, octree, octree.depth, query_pts)
-    label_mask = points.labels > self.FLAGS.LOSS.mask  # filter labels
-    return logit[label_mask], points.labels[label_mask]
+    point_labels = points.labels.squeeze(1)
+    # filter labels to ignore the background points
+    label_mask = point_labels > self.FLAGS.LOSS.mask
+    return logit[label_mask], point_labels[label_mask]
 
   def config_optimizer(self):
     flags = self.FLAGS.SOLVER
@@ -129,7 +131,8 @@ class SegSolver(Solver):
       if self.FLAGS.SOLVER.eval_epoch - 1 == batch['epoch']:
         full_filename = os.path.join(self.logdir, filename[:-4] + '.eval.npz')
         curr_folder = os.path.dirname(full_filename)
-        if not os.path.exists(curr_folder): os.makedirs(curr_folder)
+        if not os.path.exists(curr_folder):
+          os.makedirs(curr_folder)
         np.savez(full_filename, prob=self.eval_rst[filename].cpu().numpy())
 
   def result_callback(self, avg_tracker, epoch):

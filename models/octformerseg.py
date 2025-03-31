@@ -9,7 +9,7 @@ import ocnn
 import torch
 
 from ocnn.octree import Octree
-from typing import Optional, List, Dict
+from typing import List, Dict
 
 from .octformer import OctFormer
 
@@ -28,10 +28,10 @@ class SegHeader(torch.nn.Module):
     self.upsample = ocnn.nn.OctreeUpsample('nearest', nempty)
     self.conv3x3 = torch.nn.ModuleList([ocnn.modules.OctreeConvBnRelu(
         fpn_channel, fpn_channel, kernel_size=[3],
-        stride=1, nempty=nempty) for i in range(self.num_stages)])
+        stride=1, nempty=nempty) for _ in range(self.num_stages)])
     self.up_conv = torch.nn.ModuleList([ocnn.modules.OctreeDeconvBnRelu(
         fpn_channel, fpn_channel, kernel_size=[3],
-        stride=2, nempty=nempty) for i in range(self.num_up)])
+        stride=2, nempty=nempty) for _ in range(self.num_up)])
     self.interp = ocnn.nn.OctreeInterp('nearest', nempty)
     self.classifier = torch.nn.Sequential(
         torch.nn.Dropout(dropout[0]),
@@ -73,11 +73,12 @@ class OctFormerSeg(torch.nn.Module):
           num_heads: List[int] = [6, 12, 24, 24],
           patch_size: int = 32, dilation: int = 4, drop_path: float = 0.5,
           nempty: bool = True, stem_down: int = 2, head_up: int = 2,
-          fpn_channel: int = 168, head_drop: List[float] = [0.0, 0.0], **kwargs):
+          fpn_channel: int = 168, head_drop: List[float] = [0.0, 0.0],
+          use_dwconv: bool = True, **kwargs):
     super().__init__()
     self.backbone = OctFormer(
         in_channels, channels, num_blocks, num_heads, patch_size, dilation,
-        drop_path, nempty, stem_down)
+        drop_path, nempty, stem_down, use_dwconv)
     self.head = SegHeader(
         out_channels, channels, fpn_channel, nempty, head_up, head_drop)
     self.apply(self.init_weights)

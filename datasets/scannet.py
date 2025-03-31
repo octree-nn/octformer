@@ -99,7 +99,7 @@ def align_z(points: Points):
 
 
 def rand_crop(points: Points, max_npt: int):
-  r''' Keeps `max_npt` pts at most centered by a radomly chosen pts. 
+  r''' Keeps `max_npt` pts at most centered by a radomly chosen pts.
   '''
 
   pts = points.points
@@ -150,7 +150,7 @@ class ScanNetTransform(Transform):
 
     # transform provided by `ocnn`,
     # including rotatation, translation, scaling, and flipping
-    output = self.transform(points, idx)   # points and inbox_mask
+    output = self.transform({'points': points}, idx)   # points and inbox_mask
     points, inbox_mask = output['points'], output['inbox_mask']
 
     # random crop

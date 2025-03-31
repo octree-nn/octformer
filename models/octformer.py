@@ -7,7 +7,6 @@
 
 import torch
 import ocnn
-import dwconv
 
 from ocnn.octree import Octree
 from typing import Optional, List
@@ -112,13 +111,24 @@ class MLP(torch.nn.Module):
     return data
 
 
-class OctreeDWConvBn(torch.nn.Module):
+class CPE(torch.nn.Module):
 
   def __init__(self, in_channels: int, kernel_size: List[int] = [3],
-               stride: int = 1, nempty: bool = False):
+               stride: int = 1, nempty: bool = False, use_dwconv: bool = True):
     super().__init__()
-    self.conv = dwconv.OctreeDWConv(
-        in_channels, kernel_size, nempty, use_bias=False)
+    use_bias = False
+    group = 4    # !!! 4 groups if using group-conv
+
+    if use_dwconv:
+      import dwconv
+      self.conv = dwconv.OctreeDWConv(
+          in_channels, kernel_size, nempty, use_bias)
+    else:
+      assert in_channels % group == 0
+      self.conv = ocnn.nn.OctreeGroupConv(
+          in_channels, in_channels, kernel_size, stride, nempty,
+          use_bias, group)
+
     self.bn = torch.nn.BatchNorm1d(in_channels)
 
   def forward(self, data: torch.Tensor, octree: Octree, depth: int):
@@ -243,7 +253,8 @@ class OctFormerBlock(torch.nn.Module):
                dilation: int = 0, mlp_ratio: float = 4.0, qkv_bias: bool = True,
                qk_scale: Optional[float] = None, attn_drop: float = 0.0,
                proj_drop: float = 0.0, drop_path: float = 0.0, nempty: bool = True,
-               activation: torch.nn.Module = torch.nn.GELU, **kwargs):
+               activation: torch.nn.Module = torch.nn.GELU, use_dwconv: bool = True,
+               **kwargs):
     super().__init__()
     self.norm1 = torch.nn.LayerNorm(dim)
     self.attention = OctreeAttention(dim, patch_size, num_heads, qkv_bias,
@@ -251,7 +262,7 @@ class OctFormerBlock(torch.nn.Module):
     self.norm2 = torch.nn.LayerNorm(dim)
     self.mlp = MLP(dim, int(dim * mlp_ratio), dim, activation, proj_drop)
     self.drop_path = ocnn.nn.OctreeDropPath(drop_path, nempty)
-    self.cpe = OctreeDWConvBn(dim, nempty=nempty)
+    self.cpe = CPE(dim, nempty=nempty, use_dwconv=use_dwconv)
 
   def forward(self, data: torch.Tensor, octree: OctreeT, depth: int):
     data = self.cpe(data, octree, depth) + data
@@ -270,7 +281,7 @@ class OctFormerStage(torch.nn.Module):
                proj_drop: float = 0.0, drop_path: float = 0.0, nempty: bool = True,
                activation: torch.nn.Module = torch.nn.GELU, interval: int = 6,
                use_checkpoint: bool = True, num_blocks: int = 2,
-               octformer_block=OctFormerBlock, **kwargs):
+               octformer_block=OctFormerBlock, use_dwconv: bool = True, **kwargs):
     super().__init__()
     self.num_blocks = num_blocks
     self.use_checkpoint = use_checkpoint
@@ -283,7 +294,8 @@ class OctFormerStage(torch.nn.Module):
         mlp_ratio=mlp_ratio, qkv_bias=qkv_bias, qk_scale=qk_scale,
         attn_drop=attn_drop, proj_drop=proj_drop,
         drop_path=drop_path[i] if isinstance(drop_path, list) else drop_path,
-        nempty=nempty, activation=activation) for i in range(num_blocks)])
+        nempty=nempty, activation=activation, use_dwconv=use_dwconv,)
+        for i in range(num_blocks)])
     # self.norms = torch.nn.ModuleList([
     #     torch.nn.BatchNorm1d(dim) for _ in range(self.num_norms)])
 
@@ -347,7 +359,8 @@ class OctFormer(torch.nn.Module):
                num_blocks: List[int] = [2, 2, 18, 2],
                num_heads: List[int] = [6, 12, 24, 24],
                patch_size: int = 26, dilation: int = 4, drop_path: float = 0.5,
-               nempty: bool = True, stem_down: int = 2, **kwargs):
+               nempty: bool = True, stem_down: int = 2, use_dwconv: bool = True,
+               **kwargs):
     super().__init__()
     self.patch_size = patch_size
     self.dilation = dilation
@@ -360,8 +373,8 @@ class OctFormer(torch.nn.Module):
     self.layers = torch.nn.ModuleList([OctFormerStage(
         dim=channels[i], num_heads=num_heads[i], patch_size=patch_size,
         drop_path=drop_ratio[sum(num_blocks[:i]):sum(num_blocks[:i+1])],
-        dilation=dilation, nempty=nempty, num_blocks=num_blocks[i],)
-        for i in range(self.num_stages)])
+        dilation=dilation, nempty=nempty, num_blocks=num_blocks[i],
+        use_dwconv=use_dwconv,) for i in range(self.num_stages)])
     self.downsamples = torch.nn.ModuleList([Downsample(
         channels[i], channels[i + 1], kernel_size=[2],
         nempty=nempty) for i in range(self.num_stages - 1)])
