@@ -117,7 +117,7 @@ class CPE(torch.nn.Module):
                stride: int = 1, nempty: bool = False, use_dwconv: bool = True):
     super().__init__()
     use_bias = False
-    group = 4    # !!! 4 groups if using group-conv
+    group = 8    # !!! 4 groups if using group-conv
 
     if use_dwconv:
       import dwconv
@@ -302,7 +302,7 @@ class OctFormerStage(torch.nn.Module):
   def forward(self, data: torch.Tensor, octree: OctreeT, depth: int):
     for i in range(self.num_blocks):
       if self.use_checkpoint and self.training:
-        data = checkpoint(self.blocks[i], data, octree, depth)
+        data = checkpoint(self.blocks[i], data, octree, depth, use_reentrant=False)
       else:
         data = self.blocks[i](data, octree, depth)
       # if i % self.interval == 0 and i != 0:

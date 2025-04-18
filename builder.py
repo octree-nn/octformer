@@ -34,7 +34,8 @@ def octsegformer(in_channels, out_channels, **kwargs):
       drop_path=0.5, nempty=True,
       stem_down=2, head_up=2,
       fpn_channel=168,
-      head_drop=[0.5, 0.5])
+      head_drop=[0.5, 0.5],)
+      # use_dwconv=False, )
 
 
 def octsegformer_small(in_channels, out_channels, **kwargs):
