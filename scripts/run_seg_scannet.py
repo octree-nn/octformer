@@ -27,9 +27,9 @@ def train():
   cmds = [
       'python segmentation.py',
       '--config configs/seg_scannet.yaml',
-      'SOLVER.gpu  {},'.format(args.gpu),
-      'SOLVER.alias  {}'.format(args.alias),
-      'SOLVER.dist_url tcp://localhost:{}'.format(args.port),]
+      'SOLVER.gpu   {},'.format(args.gpu),
+      'SOLVER.alias {}'.format(args.alias),
+      'SOLVER.port  {}'.format(args.port),]
   execute_command(cmds)
 
 

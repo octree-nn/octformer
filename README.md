@@ -22,7 +22,9 @@ ACM Transactions on Graphics (SIGGRAPH), 42(4), 2023
 
 ## 1. Installation
 
-The code has been tested on Ubuntu 20.04 with 4 Nvidia 3090 GPUs (24GB memory).
+The code has been tested on Ubuntu 20.04 using 4 NVIDIA 3090 GPUs (24GB memory
+each). Experiments were conducted with PyTorch 1.12.1 and CUDA 11.3, though
+other versions may also be compatible.
 
 
 1. Install [Conda](https://www.anaconda.com/) and create a `Conda` environment.

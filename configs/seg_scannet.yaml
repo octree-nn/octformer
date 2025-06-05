@@ -22,7 +22,7 @@ SOLVER:
   lr: 0.0015
   lr_type: step_warmup
   milestones: (360,520)
-  dist_url: tcp://localhost:10001  # for distributed training
+  port: 10001  # for distributed training
 
 DATA:
   train:
@@ -42,7 +42,7 @@ DATA:
     cutmix: 0.0        # no cutmix
     crop_ratio: 0.8    # random ratio of random cropping
     max_npt: 120000    # max point number of random cropping
-    
+
     # data loading
     location: data/scannet.npz/train
     filelist: data/scannet.npz/scannetv2_train_npz.txt
