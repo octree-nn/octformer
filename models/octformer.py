@@ -117,7 +117,9 @@ class CPE(torch.nn.Module):
                stride: int = 1, nempty: bool = False, use_dwconv: bool = True):
     super().__init__()
     use_bias = False
-    group = 8    # !!! 4 groups if using group-conv
+    # !!! 8 groups if using group-conv;
+    # octree_conv can also be used, as in PTV3
+    group = 8
 
     if use_dwconv:
       import dwconv
